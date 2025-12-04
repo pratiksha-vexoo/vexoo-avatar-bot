@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Avatar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        .video-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+        }
+
+        #avatar-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Fills the entire viewport, may crop edges */
+            /* Use object-fit: contain; if you want to see full video with black bars */
+        }
+
+        /* Fallback message if video fails */
+        .fallback {
+            display: none;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .video-container.error #avatar-video {
+            display: none;
+        }
+
+        .video-container.error .fallback {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container" id="container">
+        <video 
+            id="avatar-video"
+            autoplay 
+            loop 
+            muted 
+            playsinline
+            preload="auto"
+        >
+            <!-- Update this path to match your video file location -->
+            <source src="avatar.mp4" type="video/mp4">
+            <source src="avatar.webm" type="video/webm">
+        </video>
+        <div class="fallback">
+            <p>🤖 Vexoo Bot</p>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('avatar-video');
+        const container = document.getElementById('container');
+
+        // Ensure video plays on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Force play (handles autoplay restrictions)
+            const playPromise = video.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.log('Video playing successfully');
+                    })
+                    .catch((error) => {
+                        console.error('Autoplay failed:', error);
+                        // Video is muted, so autoplay should work
+                        // But if it fails, try again
+                        video.muted = true;
+                        video.play().catch(e => {
+                            console.error('Retry play failed:', e);
+                            container.classList.add('error');
+                        });
+                    });
+            }
+        });
+
+        // Handle video errors
+        video.addEventListener('error', (e) => {
+            console.error('Video error:', e);
+            container.classList.add('error');
+        });
+
+        // Ensure video keeps playing if it somehow pauses
+        video.addEventListener('pause', () => {
+            if (!video.ended) {
+                video.play().catch(console.error);
+            }
+        });
+
+        // Loop handler (backup for loop attribute)
+        video.addEventListener('ended', () => {
+            video.currentTime = 0;
+            video.play().catch(console.error);
+        });
+
+        // Visibility change handler - resume when tab becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && video.paused) {
+                video.play().catch(console.error);
+            }
+        });
+    </script>
+</body>
+</html>
